@@ -16,13 +16,17 @@
 FROM nginx:latest
 
 # Install requirements for static services(hugo)
-RUN apt-get update && \
-    apt-get install hugo -y \
-    rm /var/cache/apk/*
 
-# Build and update config files
-RUN hugo && \
-    cp public/* /usr/share/nginx/html && \
+RUN mkdir -p /usr/local/website
+COPY . /usr/local/website/
+RUN apt-get update && \
+    apt-get install wget -y && \
+    wget -P /tmp/ https://obs.cn-north-1.myhuaweicloud.com:443/obs-community-bucket/hugo_0.41.tar.gz && \
+    tar -zxvf /tmp/hugo_0.41.tar.gz -C /tmp && \
+    cp /tmp/hugo /usr/local/bin/ && \
+    cd /usr/local/website && \
+    hugo && \
+    cp -r public/* /usr/share/nginx/html && \
     sed -i "s/user  nginx;/user root root;/g" /etc/nginx/nginx.conf
 
 CMD ["nginx", "-g", "daemon off;"]
